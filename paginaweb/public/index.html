@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Market Electro Express</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <h1>Market Electro Express</h1>
+
+  <div style="display:flex; align-items:center; gap:15px;">
+
+    <!-- BOTONES VISIBLES SI NO ESTÁ LOGUEADO -->
+    <a href="/login.html" id="btn-login">Login</a>
+    <a href="/login.html" id="btn-registro">Registro</a>
+
+    <!-- SALUDO USUARIO -->
+    <span id="saludo" style="display:none;"></span>
+
+    <!-- BOTONES VISIBLES SI ESTÁ LOGUEADO -->
+    <a href="/historial.html" id="btn-historial" style="display:none;">Mis compras</a>
+    <a href="/logout-user" id="btn-logout" style="display:none;">Cerrar sesión</a>
+
+    <!-- CARRITO -->
+    <button onclick="abrirCarrito()">
+      🛒 (<span id="contador">0</span>)
+    </button>
+
+  </div>
+</header>
+
+<!-- CONTENEDOR DINÁMICO DE PRODUCTOS -->
+<section id="contenedor-productos"></section>
+
+<!-- CARRITO LATERAL -->
+<div id="carrito" class="carrito">
+  <h2>Tu Compra</h2>
+  <div id="items"></div>
+  <h3>Total: $<span id="total">0</span></h3>
+
+  <button onclick="finalizarCompra()">Finalizar Compra</button>
+  <button onclick="cerrarCarrito()">Cerrar</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

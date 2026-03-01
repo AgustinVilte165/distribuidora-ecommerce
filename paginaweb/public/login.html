@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Acceso - Market Electro Express</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="auth-container">
+
+  <h2 id="titulo">Iniciar Sesión</h2>
+
+  <!-- LOGIN -->
+  <form id="form-login" action="/login-user" method="POST">
+    <input type="email" name="email" placeholder="Correo electrónico" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Ingresar</button>
+  </form>
+
+  <!-- REGISTRO -->
+  <form id="form-registro" action="/registro" method="POST" style="display:none;">
+    <input type="email" name="email" placeholder="Correo electrónico" required>
+    <input type="password" name="password" placeholder="Contraseña" required>
+    <button type="submit">Crear Cuenta</button>
+  </form>
+
+  <p id="switch-text">
+    ¿No tenés cuenta?
+    <a href="#" onclick="mostrarRegistro()">Registrarse</a>
+  </p>
+
+  <p style="margin-top:20px;">
+    <a href="/" style="font-size:14px;">← Volver a la tienda</a>
+  </p>
+
+</div>
+
+<script>
+function mostrarRegistro() {
+  document.getElementById("titulo").innerText = "Crear Cuenta";
+  document.getElementById("form-login").style.display = "none";
+  document.getElementById("form-registro").style.display = "block";
+  document.getElementById("switch-text").innerHTML =
+    '¿Ya tenés cuenta? <a href="#" onclick="mostrarLogin()">Iniciar sesión</a>';
+}
+
+function mostrarLogin() {
+  document.getElementById("titulo").innerText = "Iniciar Sesión";
+  document.getElementById("form-login").style.display = "block";
+  document.getElementById("form-registro").style.display = "none";
+  document.getElementById("switch-text").innerHTML =
+    '¿No tenés cuenta? <a href="#" onclick="mostrarRegistro()">Registrarse</a>';
+}
+
+/* 🔐 Si ya está logueado, redirigir */
+async function verificarSesion() {
+  try {
+    const res = await fetch("/usuario-actual");
+    const data = await res.json();
+
+    if (data.logueado) {
+      window.location.href = "/";
+    }
+  } catch (error) {
+    console.log("No se pudo verificar sesión");
+  }
+}
+
+verificarSesion();
+</script>
+
+</body>
+</html>
