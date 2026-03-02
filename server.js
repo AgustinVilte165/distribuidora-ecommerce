@@ -6,11 +6,6 @@ const bcrypt = require("bcryptjs");
 const path = require("path");
 
 const app = express();
-
-/* ============================= */
-/* CONFIGURACIÓN */
-/* ============================= */
-
 const PORT = process.env.PORT || 3000;
 
 /* ============================= */
@@ -20,11 +15,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static correcto para Render
 const publicPath = path.join(__dirname, "paginaweb", "public");
 app.use(express.static(publicPath));
 
-// Ruta raíz
 app.get("/", (req, res) => {
   res.sendFile(path.join(publicPath, "index.html"));
 });
@@ -36,7 +29,7 @@ app.use(session({
 }));
 
 /* ============================= */
-/* CONEXIÓN MONGODB */
+/* MONGODB */
 /* ============================= */
 
 mongoose.connect(process.env.MONGO_URI)
@@ -48,8 +41,8 @@ mongoose.connect(process.env.MONGO_URI)
 /* ============================= */
 
 const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true },
-  password: { type: String, required: true },
+  email: String,
+  password: String,
   fechaRegistro: { type: Date, default: Date.now }
 });
 
@@ -88,7 +81,7 @@ app.post("/login-admin", (req, res) => {
 });
 
 /* ============================= */
-/* PANEL ADMIN */
+/* PANEL ADMIN PROFESIONAL */
 /* ============================= */
 
 app.get("/admin", async (req, res) => {
@@ -105,14 +98,53 @@ app.get("/admin", async (req, res) => {
   <head>
     <title>Panel Admin - Market Electro Express</title>
     <style>
-      body { font-family: Arial; background:#f4f4f4; padding:20px; }
-      .card { background:white; padding:15px; margin:15px 0; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);}
-      button { padding:6px 12px; border:none; border-radius:4px; cursor:pointer; margin-right:5px;}
-      .aprobar { background:green; color:white; }
-      .rechazar { background:red; color:white; }
-      .logout { display:inline-block; margin-bottom:20px; }
+      body { font-family: Arial; background:#f4f6f9; padding:30px; }
+      h1 { margin-bottom:10px; }
       h2 { margin-top:40px; }
+      .card {
+        background:white;
+        padding:20px;
+        margin:20px 0;
+        border-radius:10px;
+        box-shadow:0 3px 8px rgba(0,0,0,0.1);
+      }
+      button {
+        padding:8px 15px;
+        border:none;
+        border-radius:6px;
+        cursor:pointer;
+        font-weight:bold;
+        margin-right:10px;
+      }
+      .aprobar { background:#28a745; color:white; }
+      .rechazar { background:#dc3545; color:white; }
+      .logout {
+        display:inline-block;
+        margin-bottom:20px;
+        text-decoration:none;
+        color:white;
+        background:#333;
+        padding:8px 15px;
+        border-radius:6px;
+      }
+      .estado {
+        padding:6px 12px;
+        border-radius:20px;
+        color:white;
+        font-weight:bold;
+        font-size:14px;
+      }
+      .pendiente { background:orange; }
+      .hecho { background:green; }
+      .rechazado { background:red; }
     </style>
+
+    <script>
+      function confirmarCambio() {
+        return confirm("¿Estás seguro de cambiar el estado del pedido?");
+      }
+    </script>
+
   </head>
   <body>
 
@@ -127,16 +159,30 @@ app.get("/admin", async (req, res) => {
   }
 
   pedidos.forEach(p => {
+
+    let claseEstado = "pendiente";
+    if (p.estado === "pedido hecho") claseEstado = "hecho";
+    if (p.estado.includes("rechazado")) claseEstado = "rechazado";
+
     html += `
       <div class="card">
         <strong>Email:</strong> ${p.usuario ? p.usuario.email : "Usuario eliminado"}<br/>
         <strong>Total:</strong> $${p.total}<br/>
-        <strong>Estado:</strong> ${p.estado}<br/>
-        <strong>Fecha:</strong> ${p.fecha}<br/><br/>
+        <strong>Estado:</strong> 
+        <span class="estado ${claseEstado}">
+          ${p.estado}
+        </span>
+        <br/>
+        <strong>Fecha:</strong> ${p.fecha}
+        <br/><br/>
 
-        <form method="POST" action="/admin/cambiar-estado/${p._id}">
-          <button class="aprobar" name="estado" value="aprobado">Aprobar</button>
-          <button class="rechazar" name="estado" value="rechazado">Rechazar</button>
+        <form method="POST" action="/admin/cambiar-estado/${p._id}" onsubmit="return confirmarCambio()">
+          <button class="aprobar" name="estado" value="pedido hecho">
+            Pedido hecho
+          </button>
+          <button class="rechazar" name="estado" value="pedido rechazado - hablar con cliente">
+            Hablarle al cliente
+          </button>
         </form>
       </div>
     `;
@@ -162,7 +208,7 @@ app.get("/admin", async (req, res) => {
 });
 
 /* ============================= */
-/* CAMBIAR ESTADO PEDIDO */
+/* CAMBIAR ESTADO */
 /* ============================= */
 
 app.post("/admin/cambiar-estado/:id", async (req, res) => {
@@ -171,7 +217,6 @@ app.post("/admin/cambiar-estado/:id", async (req, res) => {
   }
 
   const { estado } = req.body;
-
   await Pedido.findByIdAndUpdate(req.params.id, { estado });
 
   res.redirect("/admin");
@@ -187,7 +232,7 @@ app.get("/logout-admin", (req, res) => {
 });
 
 /* ============================= */
-/* REGISTRO USUARIO */
+/* REGISTRO */
 /* ============================= */
 
 app.post("/registro", async (req, res) => {
@@ -197,18 +242,13 @@ app.post("/registro", async (req, res) => {
   if (existe) return res.send("Usuario ya existe");
 
   const hash = bcrypt.hashSync(password, 10);
+  await new User({ email, password: hash }).save();
 
-  const nuevoUser = new User({
-    email,
-    password: hash
-  });
-
-  await nuevoUser.save();
   res.redirect("/registro-exitoso.html");
 });
 
 /* ============================= */
-/* LOGIN USUARIO */
+/* LOGIN */
 /* ============================= */
 
 app.post("/login-user", async (req, res) => {
@@ -227,19 +267,16 @@ app.post("/login-user", async (req, res) => {
 });
 
 /* ============================= */
-/* RECUPERAR CONTRASEÑA */
+/* RECUPERAR PASSWORD */
 /* ============================= */
 
 app.post("/recuperar-password", async (req, res) => {
   const { email, nuevaPassword } = req.body;
 
   const user = await User.findOne({ email });
-  if (!user) {
-    return res.send("Usuario no encontrado");
-  }
+  if (!user) return res.send("Usuario no encontrado");
 
-  const hash = bcrypt.hashSync(nuevaPassword, 10);
-  user.password = hash;
+  user.password = bcrypt.hashSync(nuevaPassword, 10);
   await user.save();
 
   res.send(`
@@ -264,7 +301,7 @@ app.get("/usuario-actual", (req, res) => {
 });
 
 /* ============================= */
-/* LOGOUT USUARIO */
+/* LOGOUT USER */
 /* ============================= */
 
 app.get("/logout-user", (req, res) => {
@@ -283,18 +320,17 @@ app.post("/pedido", async (req, res) => {
 
   const { productos, total } = req.body;
 
-  const nuevoPedido = new Pedido({
+  await new Pedido({
     usuario: req.session.userId,
     productos,
     total
-  });
+  }).save();
 
-  await nuevoPedido.save();
   res.json({ ok: true });
 });
 
 /* ============================= */
-/* HISTORIAL USUARIO */
+/* HISTORIAL */
 /* ============================= */
 
 app.get("/mis-pedidos", async (req, res) => {
