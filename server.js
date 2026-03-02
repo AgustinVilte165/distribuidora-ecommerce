@@ -295,6 +295,25 @@ app.get("/mis-pedidos", async (req, res) => {
 /* INICIAR SERVIDOR */
 /* ============================= */
 
+app.post("/recuperar-password", async (req, res) => {
+  const { email, nuevaPassword } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.send("Usuario no encontrado");
+  }
+
+  const hash = bcrypt.hashSync(nuevaPassword, 10);
+
+  user.password = hash;
+  await user.save();
+
+  res.send(`
+    <h2>Contraseña actualizada correctamente ✅</h2>
+    <a href="/login.html">Volver al login</a>
+  `);
+});
+
 app.listen(PORT, () =>
   console.log("🚀 Servidor corriendo en puerto " + PORT)
 );
