@@ -19,7 +19,9 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "public")));
+
+// 🔥 IMPORTANTE: apuntar a paginaweb/public
+app.use(express.static(path.join(__dirname, "paginaweb", "public")));
 
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -126,7 +128,6 @@ app.post("/registro", async (req, res) => {
   });
 
   await nuevoUser.save();
-
   res.redirect("/login.html");
 });
 
