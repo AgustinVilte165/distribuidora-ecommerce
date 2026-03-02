@@ -20,12 +20,9 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// STATIC PARA PRODUCCIÓN (Render)
+// Static correcto para Render
 const publicPath = path.join(__dirname, "paginaweb", "public");
 app.use(express.static(publicPath));
-app.get("/:file", (req, res) => {
-  res.sendFile(path.join(publicPath, req.params.file));
-});
 
 // Ruta raíz
 app.get("/", (req, res) => {
@@ -91,7 +88,7 @@ app.post("/login-admin", (req, res) => {
 });
 
 /* ============================= */
-/* PANEL ADMIN MEJORADO */
+/* PANEL ADMIN */
 /* ============================= */
 
 app.get("/admin", async (req, res) => {
@@ -146,10 +143,6 @@ app.get("/admin", async (req, res) => {
   });
 
   html += `<h2>Usuarios Registrados</h2>`;
-
-  if (usuarios.length === 0) {
-    html += `<p>No hay usuarios registrados todavía.</p>`;
-  }
 
   usuarios.forEach(u => {
     html += `
@@ -234,6 +227,28 @@ app.post("/login-user", async (req, res) => {
 });
 
 /* ============================= */
+/* RECUPERAR CONTRASEÑA */
+/* ============================= */
+
+app.post("/recuperar-password", async (req, res) => {
+  const { email, nuevaPassword } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.send("Usuario no encontrado");
+  }
+
+  const hash = bcrypt.hashSync(nuevaPassword, 10);
+  user.password = hash;
+  await user.save();
+
+  res.send(`
+    <h2>Contraseña actualizada correctamente ✅</h2>
+    <a href="/login.html">Volver al login</a>
+  `);
+});
+
+/* ============================= */
 /* USUARIO ACTUAL */
 /* ============================= */
 
@@ -294,25 +309,6 @@ app.get("/mis-pedidos", async (req, res) => {
 /* ============================= */
 /* INICIAR SERVIDOR */
 /* ============================= */
-
-app.post("/recuperar-password", async (req, res) => {
-  const { email, nuevaPassword } = req.body;
-
-  const user = await User.findOne({ email });
-  if (!user) {
-    return res.send("Usuario no encontrado");
-  }
-
-  const hash = bcrypt.hashSync(nuevaPassword, 10);
-
-  user.password = hash;
-  await user.save();
-
-  res.send(`
-    <h2>Contraseña actualizada correctamente ✅</h2>
-    <a href="/login.html">Volver al login</a>
-  `);
-});
 
 app.listen(PORT, () =>
   console.log("🚀 Servidor corriendo en puerto " + PORT)
