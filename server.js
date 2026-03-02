@@ -23,6 +23,9 @@ app.use(express.urlencoded({ extended: true }));
 // STATIC PARA PRODUCCIÓN (Render)
 const publicPath = path.join(__dirname, "paginaweb", "public");
 app.use(express.static(publicPath));
+app.get("/:file", (req, res) => {
+  res.sendFile(path.join(publicPath, req.params.file));
+});
 
 // Ruta raíz
 app.get("/", (req, res) => {
