@@ -208,7 +208,7 @@ app.post("/registro", async (req, res) => {
   });
 
   await nuevoUser.save();
-  res.redirect("/login.html");
+  res.redirect("/registro-exitoso.html");
 });
 
 /* ============================= */

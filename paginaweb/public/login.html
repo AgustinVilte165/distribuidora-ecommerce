@@ -4,6 +4,21 @@
   <meta charset="UTF-8">
   <title>Acceso - Market Electro Express</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .extra-link {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .extra-link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .extra-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
 
@@ -16,6 +31,10 @@
     <input type="email" name="email" placeholder="Correo electrónico" required>
     <input type="password" name="password" placeholder="Contraseña" required>
     <button type="submit">Ingresar</button>
+
+    <div class="extra-link">
+      <a href="/recuperar.html">¿Olvidaste tu contraseña?</a>
+    </div>
   </form>
 
   <!-- REGISTRO -->
@@ -25,7 +44,7 @@
     <button type="submit">Crear Cuenta</button>
   </form>
 
-  <p id="switch-text">
+  <p id="switch-text" class="extra-link">
     ¿No tenés cuenta?
     <a href="#" onclick="mostrarRegistro()">Registrarse</a>
   </p>
